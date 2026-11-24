@@ -41,7 +41,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(
-    title="TaskDesk API",
+    title="TaskBridge API",
     description="Task and inventory management with JWT auth and role-based access.",
     version="1.0.0",
     lifespan=lifespan,
