@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaskBridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#edf1f5;--surface:#fff;--ink:#14303a;--muted:#5d7580;--line:#d8e1e7;--brand:#0f6b66;--brand-ink:#fff;--warn:#b4570a;--warn-bg:#fdecd3;--bad:#b3261e;--ok:#17703f;--ok-bg:#dcf3e5;--info-bg:#dde9f7;--info:#1f4e8c;--radius:10px;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1b21;--surface:#16262e;--ink:#e6eef2;--muted:#8fa6b1;--line:#27404b;--brand:#3cb8ae;--brand-ink:#06201e;--warn:#f0a85b;--warn-bg:#3b2a14;--bad:#ff8a80;--ok:#6fd49a;--ok-bg:#16382a;--info-bg:#1b2f48;--info:#8db8ee;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 Figtree,system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.hidden{display:none!important}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--brand)}
+.btn.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn.danger{color:var(--bad)}
+.btn.small{padding:4px 10px;font-size:13px}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+label{display:block;font-weight:600;font-size:13px;margin:12px 0 4px}
+/* auth */
+#auth{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.auth-side{background:var(--brand);color:var(--brand-ink);padding:56px;display:flex;flex-direction:column;justify-content:space-between}
+.auth-side h1{font-size:44px;line-height:1.05;margin:0 0 14px;letter-spacing:-.02em;max-width:11ch}
+.auth-side p{max-width:36ch;margin:0;opacity:.9}
+.auth-side small{opacity:.8}
+.auth-main{display:grid;place-items:center;padding:24px}
+.auth-card{width:100%;max-width:360px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.tab{background:none;border:0;padding:10px 14px;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab[aria-selected=true]{color:var(--ink);border-color:var(--brand)}
+.hint{font-size:13px;color:var(--muted);margin-top:14px}
+.error{color:var(--bad);font-size:13px;min-height:18px;margin-top:8px}
+/* app */
+header.top{display:flex;align-items:center;gap:16px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.logo{font-weight:700;font-size:18px;letter-spacing:-.01em;margin-right:12px}
+header .tabs{border:0;margin:0;flex:1}
+.who{display:flex;align-items:center;gap:10px;font-size:14px}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;background:var(--info-bg);color:var(--info)}
+.badge.ok{background:var(--ok-bg);color:var(--ok)}.badge.warn{background:var(--warn-bg);color:var(--warn)}
+main{max-width:1040px;margin:24px auto;padding:0 20px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.toolbar input[type=search]{flex:1;min-width:180px}.toolbar select{width:auto}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:13px;color:var(--muted);font-weight:600;background:color-mix(in srgb,var(--bg) 60%,var(--surface))}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.actions{text-align:right;white-space:nowrap}
+.title-cell b{display:block}.title-cell span{color:var(--muted);font-size:13px}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.stat b{display:block;font-size:26px;letter-spacing:-.02em}.stat span{color:var(--muted);font-size:13px}
+.stat.alert{border-color:var(--warn)}
+.pager{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;color:var(--muted);font-size:14px}
+.pager div{display:flex;gap:8px}
+.empty{padding:48px 20px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+dialog{border:1px solid var(--line);border-radius:14px;padding:22px;width:min(440px,92vw);background:var(--surface);color:var(--ink)}
+dialog::backdrop{background:rgba(10,20,25,.5)}
+dialog h2{margin:0 0 4px;font-size:19px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+@media(max-width:760px){#auth{grid-template-columns:1fr}.auth-side{padding:28px}.auth-side h1{font-size:30px}header.top{flex-wrap:wrap;padding:10px 14px}.who .name{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<section id="auth" class="hidden">
+  <div class="auth-side">
+    <div><strong>TaskBridge</strong></div>
+    <div>
+      <h1>Your tasks and your stock, in one place.</h1>
+      <p>Track what needs doing and what is running low. Admins manage inventory; everyone manages their own tasks.</p>
+    </div>
+    <small>Demo admin login: admin / admin12345</small>
+  </div>
+  <div class="auth-main">
+    <div class="auth-card">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-login" aria-selected="true">Sign in</button>
+        <button class="tab" role="tab" id="tab-register" aria-selected="false">Create account</button>
+      </div>
+      <form id="auth-form" autocomplete="on">
+        <label for="a-user">Username</label>
+        <input id="a-user" name="username" autocomplete="username" required minlength="3" maxlength="32">
+        <label for="a-pass">Password</label>
+        <input id="a-pass" name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="72">
+        <div class="error" id="auth-error" role="alert"></div>
+        <button class="btn primary" id="auth-submit" style="width:100%;margin-top:8px">Sign in</button>
+        <p class="hint" id="auth-hint">Passwords need at least 8 characters.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<div id="app" class="hidden">
+  <header class="top">
+    <span class="logo">TaskBridge</span>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-view="tasks" aria-selected="true">Tasks</button>
+      <button class="tab" role="tab" data-view="inventory" aria-selected="false">Inventory</button>
+    </div>
+    <div class="who"><span class="name" id="who-name"></span><span class="badge" id="who-role"></span><button class="btn small" id="logout">Sign out</button></div>
+  </header>
+  <main>
+    <section id="view-tasks">
+      <div class="toolbar">
+        <input type="search" id="t-q" placeholder="Search tasks" aria-label="Search tasks">
+        <select id="t-status" aria-label="Filter by status"><option value="">All statuses</option><option value="todo">To do</option><option value="in_progress">In progress</option><option value="done">Done</option></select>
+        <button class="btn primary" id="t-new">New task</button>
+      </div>
+      <div class="card"><div class="table-wrap" id="t-table"></div></div>
+      <div class="pager" id="t-pager"></div>
+    </section>
+    <section id="view-inventory" class="hidden">
+      <div class="summary" id="i-summary"></div>
+      <div class="toolbar">
+        <input type="search" id="i-q" placeholder="Search by name or SKU" aria-label="Search inventory">
+        <select id="i-low" aria-label="Stock filter"><option value="">All stock</option><option value="1">Low stock only</option></select>
+        <button class="btn primary admin-only" id="i-new">Add item</button>
+      </div>
+      <div class="card"><div class="table-wrap" id="i-table"></div></div>
+      <div class="pager" id="i-pager"></div>
+    </section>
+  </main>
+</div>
+
+<dialog id="dlg"><form method="dialog" id="dlg-form"><h2 id="dlg-title"></h2><div id="dlg-fields"></div><div class="error" id="dlg-error" role="alert"></div>
+  <div class="modal-actions"><button type="button" class="btn" id="dlg-cancel">Cancel</button><button class="btn primary" id="dlg-save">Save</button></div></form></dialog>
+<div id="toast" role="status"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let token = localStorage.getItem('td_token');
+let me = JSON.parse(localStorage.getItem('td_user') || 'null');
+const st = { tasks: { page: 1 }, items: { page: 1 }, mode: 'login' };
+const money = n => '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+const STATUS = { todo: ['To do', ''], in_progress: ['In progress', ''], done: ['Done', 'ok'] };
+const PRIORITY = { low: 'Low', medium: 'Medium', high: 'High' };
+
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.id); toast.id = setTimeout(() => t.classList.remove('show'), 2200); }
+
+async function api(path, opts = {}) {
+  const headers = { ...(opts.json ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: 'Bearer ' + token } : {}), ...(opts.headers || {}) };
+  const res = await fetch('/api' + path, { method: opts.method || 'GET', headers, body: opts.json ? JSON.stringify(opts.json) : opts.body });
+  if (res.status === 401 && token && !path.startsWith('/auth/login')) { logout(); throw new Error('Your session expired. Sign in again.'); }
+  if (res.status === 204) return null;
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const d = data.detail;
+    throw new Error(Array.isArray(d) ? d.map(e => `${e.loc.slice(1).join('.')}: ${e.msg}`).join('; ') : (d || 'Something went wrong. Try again.'));
+  }
+  return data;
+}
+
+/* ---------- auth ---------- */
+function setMode(mode) {
+  st.mode = mode;
+  $('#tab-login').setAttribute('aria-selected', mode === 'login');
+  $('#tab-register').setAttribute('aria-selected', mode === 'register');
+  $('#auth-submit').textContent = mode === 'login' ? 'Sign in' : 'Create account';
+  $('#a-pass').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+  $('#auth-error').textContent = '';
+}
+$('#tab-login').onclick = () => setMode('login');
+$('#tab-register').onclick = () => setMode('register');
+$('#auth-form').onsubmit = async e => {
+  e.preventDefault();
+  const username = $('#a-user').value.trim(), password = $('#a-pass').value;
+  $('#auth-error').textContent = '';
+  try {
+    if (st.mode === 'register') { await api('/auth/register', { method: 'POST', json: { username, password } }); toast('Account created'); }
+    const data = await api('/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ username, password }) });
+    token = data.access_token; me = data.user;
+    localStorage.setItem('td_token', token); localStorage.setItem('td_user', JSON.stringify(me));
+    $('#a-pass').value = ''; boot();
+  } catch (err) { $('#auth-error').textContent = err.message; }
+};
+function logout() { token = null; me = null; localStorage.removeItem('td_token'); localStorage.removeItem('td_user'); boot(); }
+$('#logout').onclick = logout;
+
+function boot() {
+  const authed = !!token && !!me;
+  $('#auth').classList.toggle('hidden', authed);
+  $('#app').classList.toggle('hidden', !authed);
+  if (!authed) return;
+  $('#who-name').textContent = me.username;
+  const role = $('#who-role'); role.textContent = me.role; role.className = 'badge ' + (me.role === 'admin' ? 'warn' : '');
+  document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', me.role !== 'admin'));
+  showView('tasks');
+}
+document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => showView(b.dataset.view));
+function showView(v) {
+  document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-selected', b.dataset.view === v));
+  $('#view-tasks').classList.toggle('hidden', v !== 'tasks');
+  $('#view-inventory').classList.toggle('hidden', v !== 'inventory');
+  (v === 'tasks' ? loadTasks : loadItems)();
+}
+
+/* ---------- shared ---------- */
+function pager(el, data, state, reload) {
+  const from = data.total ? (data.page - 1) * data.size + 1 : 0, to = Math.min(data.page * data.size, data.total);
+  el.innerHTML = `<span>${from}–${to} of ${data.total}</span><div><button class="btn small" ${data.page <= 1 ? 'disabled' : ''} data-d="-1">Previous</button><button class="btn small" ${data.page >= data.pages ? 'disabled' : ''} data-d="1">Next</button></div>`;
+  el.querySelectorAll('button').forEach(b => b.onclick = () => { state.page += Number(b.dataset.d); reload(); });
+}
+const debounce = (fn, ms = 300) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+function openForm({ title, fields, values = {}, onSave }) {
+  $('#dlg-title').textContent = title;
+  $('#dlg-error').textContent = '';
+  $('#dlg-fields').innerHTML = fields.map(f => {
+    const v = values[f.name] ?? f.default ?? '';
+    let input;
+    if (f.type === 'select') input = `<select id="f-${f.name}">${f.options.map(([val, lab]) => `<option value="${val}" ${val === v ? 'selected' : ''}>${lab}</option>`).join('')}</select>`;
+    else if (f.type === 'textarea') input = `<textarea id="f-${f.name}" rows="3" maxlength="1000">${esc(v)}</textarea>`;
+    else input = `<input id="f-${f.name}" type="${f.type || 'text'}" value="${esc(v)}" ${f.min !== undefined ? `min="${f.min}"` : ''} ${f.disabled ? 'disabled' : ''} ${f.required ? 'required' : ''}>`;
+    return `<div style="${f.half ? '' : ''}"><label for="f-${f.name}">${f.label}</label>${input}</div>`;
+  }).join('');
+  $('#dlg-form').onsubmit = async e => {
+    e.preventDefault();
+    const out = {};
+    fields.forEach(f => { const el = $('#f-' + f.name); let val = el.value; if (f.type === 'number') val = val === '' ? null : Number(val); else if (val === '') val = null; if (!f.disabled) out[f.name] = val; });
+    try { await onSave(out); $('#dlg').close(); } catch (err) { $('#dlg-error').textContent = err.message; }
+  };
+  $('#dlg').showModal();
+}
+$('#dlg-cancel').onclick = () => $('#dlg').close();
+async function confirmDelete(path, label, reload) {
+  if (!confirm(`Delete ${label}? This can't be undone.`)) return;
+  try { await api(path, { method: 'DELETE' }); toast('Deleted'); reload(); } catch (e) { toast(e.message); }
+}
+
+/* ---------- tasks ---------- */
+async function loadTasks() {
+  const p = new URLSearchParams({ page: st.tasks.page, size: 8 });
+  if ($('#t-q').value) p.set('q', $('#t-q').value);
+  if ($('#t-status').value) p.set('status', $('#t-status').value);
+  try {
+    const d = await api('/tasks?' + p);
+    $('#t-table').innerHTML = d.items.length ? `<table><thead><tr><th>Task</th><th>Status</th><th>Priority</th><th>Due</th><th></th></tr></thead><tbody>${d.items.map(t => `
+      <tr><td class="title-cell"><b>${esc(t.title)}</b>${t.description ? `<span>${esc(t.description.slice(0, 80))}</span>` : ''}</td>
+      <td><span class="badge ${STATUS[t.status][1]}">${STATUS[t.status][0]}</span></td>
+      <td>${PRIORITY[t.priority]}</td><td>${t.due_date ?? '—'}</td>
+      <td class="actions"><button class="btn small" data-edit="${t.id}">Edit</button> <button class="btn small danger" data-del="${t.id}">Delete</button></td></tr>`).join('')}</tbody></table>`
+      : `<div class="empty"><b>No tasks here yet</b>Add your first task to start tracking work.</div>`;
+    $('#t-table').querySelectorAll('[data-edit]').forEach(b => b.onclick = () => taskForm(d.items.find(t => t.id == b.dataset.edit)));
+    $('#t-table').querySelectorAll('[data-del]').forEach(b => b.onclick = () => confirmDelete('/tasks/' + b.dataset.del, 'this task', loadTasks));
+    pager($('#t-pager'), d, st.tasks, loadTasks);
+  } catch (e) { toast(e.message); }
+}
+function taskForm(task) {
+  openForm({
+    title: task ? 'Edit task' : 'New task', values: task || {},
+    fields: [
+      { name: 'title', label: 'Title', required: true },
+      { name: 'description', label: 'Notes', type: 'textarea' },
+      { name: 'status', label: 'Status', type: 'select', default: 'todo', options: [['todo', 'To do'], ['in_progress', 'In progress'], ['done', 'Done']] },
+      { name: 'priority', label: 'Priority', type: 'select', default: 'medium', options: [['low', 'Low'], ['medium', 'Medium'], ['high', 'High']] },
+      { name: 'due_date', label: 'Due date', type: 'date' },
+    ],
+    onSave: async v => { await api(task ? '/tasks/' + task.id : '/tasks', { method: task ? 'PUT' : 'POST', json: v }); toast(task ? 'Task saved' : 'Task added'); loadTasks(); },
+  });
+}
+$('#t-new').onclick = () => taskForm();
+const tReload = debounce(() => { st.tasks.page = 1; loadTasks(); });
+$('#t-q').oninput = tReload; $('#t-status').onchange = tReload;
+
+/* ---------- inventory ---------- */
+async function loadItems() {
+  const p = new URLSearchParams({ page: st.items.page, size: 8 });
+  if ($('#i-q').value) p.set('q', $('#i-q').value);
+  if ($('#i-low').value) p.set('low_stock', 'true');
+  try {
+    const [d, s] = await Promise.all([api('/items?' + p), api('/items/summary')]);
+    $('#i-summary').innerHTML = `<div class="stat"><b>${s.skus}</b><span>Products</span></div><div class="stat"><b>${s.units.toLocaleString('en-IN')}</b><span>Units in stock</span></div><div class="stat"><b>${money(s.stock_value)}</b><span>Stock value</span></div><div class="stat ${s.low_stock ? 'alert' : ''}"><b>${s.low_stock}</b><span>Running low</span></div>`;
+    const admin = me.role === 'admin';
+    $('#i-table').innerHTML = d.items.length ? `<table><thead><tr><th>Product</th><th class="num">In stock</th><th class="num">Price</th><th class="num">Reorder at</th>${admin ? '<th></th>' : ''}</tr></thead><tbody>${d.items.map(i => `
+      <tr><td class="title-cell"><b>${esc(i.name)}</b><span>${esc(i.sku)}</span></td>
+      <td class="num">${i.quantity <= i.reorder_level ? `<span class="badge warn">Low · ${i.quantity}</span>` : i.quantity}</td>
+      <td class="num">${money(i.price)}</td><td class="num">${i.reorder_level}</td>
+      ${admin ? `<td class="actions"><button class="btn small" data-edit="${i.id}">Edit</button> <button class="btn small danger" data-del="${i.id}">Delete</button></td>` : ''}</tr>`).join('')}</tbody></table>`
+      : `<div class="empty"><b>No products match</b>${admin ? 'Add a product or clear the filters.' : 'Clear the filters to see everything.'}</div>`;
+    $('#i-table').querySelectorAll('[data-edit]').forEach(b => b.onclick = () => itemForm(d.items.find(i => i.id == b.dataset.edit)));
+    $('#i-table').querySelectorAll('[data-del]').forEach(b => b.onclick = () => confirmDelete('/items/' + b.dataset.del, 'this product', loadItems));
+    pager($('#i-pager'), d, st.items, loadItems);
+  } catch (e) { toast(e.message); }
+}
+function itemForm(item) {
+  openForm({
+    title: item ? 'Edit product' : 'Add product', values: item || {},
+    fields: [
+      { name: 'sku', label: 'SKU', required: true, disabled: !!item },
+      { name: 'name', label: 'Name', required: true },
+      { name: 'quantity', label: 'In stock', type: 'number', min: 0, default: 0 },
+      { name: 'price', label: 'Price (₹)', type: 'number', min: 0, default: 0 },
+      { name: 'reorder_level', label: 'Reorder at', type: 'number', min: 0, default: 5 },
+    ],
+    onSave: async v => { await api(item ? '/items/' + item.id : '/items', { method: item ? 'PUT' : 'POST', json: v }); toast(item ? 'Product saved' : 'Product added'); loadItems(); },
+  });
+}
+$('#i-new').onclick = () => itemForm();
+const iReload = debounce(() => { st.items.page = 1; loadItems(); });
+$('#i-q').oninput = iReload; $('#i-low').onchange = iReload;
+
+boot();
+</script>
+</body>
+</html>
