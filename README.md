@@ -1,4 +1,4 @@
-# TaskDesk API
+# TaskBridge
 
 Task & inventory management REST API with a built-in web dashboard.
 
